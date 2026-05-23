@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>クーポンチェッカー</title>
+<style>
+:root{--bg:#f6f8fb;--card:#fff;--ink:#1f2937;--muted:#6b7280;--line:#e5e7eb;--main:#2563eb;--ok:#16a34a;--warn:#ca8a04;--manual:#2563eb;--none:#6b7280;--bad:#dc2626}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic",Meiryo,sans-serif}.wrap{max-width:1080px;margin:auto;padding:16px}.hero{background:linear-gradient(135deg,#1d4ed8,#38bdf8);color:#fff;border-radius:22px;padding:22px;box-shadow:0 12px 30px rgba(37,99,235,.22)}h1{margin:0 0 8px;font-size:28px}.hero p{margin:0;line-height:1.7}.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:14px;margin-top:14px}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 8px 24px rgba(15,23,42,.05)}label{display:block;font-weight:700;margin:0 0 7px}input,select,button{font:inherit}input,select{width:100%;border:1px solid #cbd5e1;border-radius:13px;padding:13px;background:#fff}button{border:0;border-radius:999px;padding:10px 14px;font-weight:800;background:var(--main);color:#fff;cursor:pointer}.ghost{background:#eef2ff;color:#1d4ed8}.danger{background:#fee2e2;color:#991b1b}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.chips{display:flex;gap:8px;flex-wrap:wrap}.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 11px;cursor:pointer}.chip:hover{border-color:#93c5fd;background:#eff6ff}.muted{color:var(--muted);font-size:13px}.results{display:grid;gap:12px;margin-top:14px}.store{border:1px solid var(--line);background:#fff;border-radius:18px;overflow:hidden}.storeHead{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:flex-start;justify-content:space-between}.storeTitle{font-size:20px;font-weight:900}.storeSub{color:var(--muted);font-size:13px;margin-top:4px}.items{padding:12px;display:grid;gap:10px}.item{border:1px solid var(--line);border-radius:15px;padding:12px;background:#fafafa}.itemTop{display:flex;gap:8px;align-items:center;justify-content:space-between}.source{font-weight:900}.badges{display:flex;gap:6px;flex-wrap:wrap}.badge{border-radius:999px;padding:4px 8px;font-size:12px;font-weight:800}.status-あり{background:#dcfce7;color:#166534}.status-可能性あり{background:#fef3c7;color:#92400e}.status-要手動確認{background:#dbeafe;color:#1e40af}.status-なし{background:#f3f4f6;color:#4b5563}.priority{background:#eef2ff;color:#3730a3}.recheck{background:#fee2e2;color:#991b1b}.detail{display:grid;grid-template-columns:120px 1fr;gap:6px;margin-top:8px;font-size:13px}.detail b{color:#475569}.link{color:#1d4ed8;text-decoration:none;font-weight:800}.empty{text-align:center;padding:28px;color:var(--muted)}.footerNav{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}.count{font-weight:900}.notice{background:#fff7ed;border:1px solid #fed7aa;border-radius:14px;padding:12px;line-height:1.7}@media(max-width:760px){.grid,.row{grid-template-columns:1fr}.hero{border-radius:0;margin:-16px -16px 0}.storeHead{display:block}.storeHead button{margin-top:10px}.detail{grid-template-columns:1fr}.wrap{padding:12px}h1{font-size:24px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="hero">
+    <h1>クーポンチェッカー</h1>
+    <p>店に行く前に、公式アプリ・JAF・Club Off・SmartNews・決済クーポン・カード優待など、確認すべき入口を順番に表示します。</p>
+  </section>
+
+  <section class="grid">
+    <div class="card">
+      <label for="q">店名・カテゴリ・優待元で検索</label>
+      <input id="q" placeholder="例：サンドラッグ、映画館、JAF、マクドナルド">
+      <div class="row" style="margin-top:10px">
+        <div><label for="cat">カテゴリ</label><select id="cat"><option value="">すべて</option></select></div>
+        <div><label for="src">優待元</label><select id="src"><option value="">すべて</option></select></div>
+      </div>
+      <div class="footerNav">
+        <button id="clear" class="ghost">条件クリア</button>
+        <button id="showFav" class="ghost">よく使う店</button>
+      </div>
+    </div>
+    <div class="card">
+      <label>DB読込</label>
+      <input id="file" type="file" accept=".json,application/json">
+      <p class="muted">同じフォルダの <b>coupon_database.json</b> を自動読込します。失敗時は内蔵サンプルDBで動きます。</p>
+      <div class="notice">支払い方法はこのアプリでは決めません。クーポン確認後に、支払いチェッカーアプリで決済方法を確認してください。</div>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:14px">
+    <div class="chips" id="quick"></div>
+  </section>
+
+  <div class="muted" style="margin:14px 4px"><span class="count" id="count">0</span> 件表示</div>
+  <main class="results" id="results"></main>
+</div>
+
+<script>
+const EMBEDDED_DB={
+  meta:{title:"クーポンチェッカー軽量DB",version:"github-lite-1.0",created_at:"2026-05-24"},
+  coupon_db:[
+    {id:"S001",店舗名:"サンドラッグ",店舗名かな:"さんどらっぐ",ブランド名:"サンドラッグ",カテゴリ大:"ドラッグストア",カテゴリ小:"ドラッグストア",優待元:"サンドラッグ公式アプリ",優待元種別:"店舗公式アプリ",優待ステータス:"要手動確認",優先度:"1. まず見る",信頼度:"高",確認方法:"公式アプリでクーポン、ポイント、会員条件を確認",確認URL:"https://www.sundrug.co.jp/",アプリ名:"サンドラッグアプリ",提示タイミング:"会計前",使う前の操作:"アプリ起動、クーポン取得、会員証提示",支払いとの関係:"支払い前に提示",併用注意:"併用条件要確認",会員条件:"アプリ会員",対象範囲:"全国/一部除外あり",店舗限定有無:"要確認",オンライン限定有無:"要確認",最終確認日:"2026-05-24",次回確認目安:"来店前",メモ:"公式アプリ優先。ポイントカードと支払い方法の順番に注意。",検索キーワード:"サンドラッグ ドラッグストア アプリ クーポン"},
+    {id:"S002",店舗名:"サンドラッグ",店舗名かな:"さんどらっぐ",ブランド名:"サンドラッグ",カテゴリ大:"ドラッグストア",カテゴリ小:"ドラッグストア",優待元:"JAF会員優待",優待元種別:"横断型",優待ステータス:"可能性あり",優先度:"2. 次に見る",信頼度:"中",確認方法:"JAFナビ/JAFアプリで店名検索",確認URL:"https://yutai.jafnavi.jp/",アプリ名:"JAFアプリ",提示タイミング:"会計前",使う前の操作:"優待内容と提示条件を確認",支払いとの関係:"支払い前に提示",併用注意:"併用条件要確認",会員条件:"JAF会員",対象範囲:"店舗・時期により変動",店舗限定有無:"要確認",オンライン限定有無:"要確認",最終確認日:"2026-05-24",次回確認目安:"来店前",メモ:"ドラッグストア系はJAFで検索する価値あり。",検索キーワード:"サンドラッグ JAF 優待"},
+    {id:"S003",店舗名:"サンドラッグ",店舗名かな:"さんどらっぐ",ブランド名:"サンドラッグ",カテゴリ大:"ドラッグストア",カテゴリ小:"ドラッグストア",優待元:"Club Off",優待元種別:"福利厚生・会員制",優待ステータス:"要手動確認",優先度:"2. 次に見る",信頼度:"中",確認方法:"Club Offログイン後に店名または日用品カテゴリで検索",確認URL:"未確認",アプリ名:"Club Off",提示タイミング:"会計前/事前購入",使う前の操作:"ログイン後に優待有無と利用方法を確認",支払いとの関係:"支払い前に条件確認",併用注意:"併用条件要確認",会員条件:"Club Off利用権限",対象範囲:"会員サイト内表示に依存",店舗限定有無:"要確認",オンライン限定有無:"要確認",最終確認日:"2026-05-24",次回確認目安:"来店前",メモ:"ログイン後情報のため断定しない。",検索キーワード:"サンドラッグ Club Off ドラッグストア"},
+    {id:"W001",店舗名:"ウエルシア",店舗名かな:"うえるしあ",ブランド名:"ウエルシア",カテゴリ大:"ドラッグストア",カテゴリ小:"ドラッグストア",優待元:"ウエルシアグループアプリ",優待元種別:"店舗公式アプリ",優待ステータス:"要手動確認",優先度:"1. まず見る",信頼度:"高",確認方法:"公式アプリでクーポン、ポイント、会員条件を確認",確認URL:"https://www.welcia-yakkyoku.co.jp/",アプリ名:"ウエルシアグループアプリ",提示タイミング:"会計前",使う前の操作:"クーポン取得、会員証/ポイント提示",支払いとの関係:"支払い前に提示",併用注意:"ポイント付与条件と併用条件要確認",会員条件:"アプリ/ポイント会員",対象範囲:"全国/一部除外あり",店舗限定有無:"要確認",オンライン限定有無:"要確認",最終確認日:"2026-05-24",次回確認目安:"来店前",メモ:"公式アプリとポイントカード提示順を優先確認。",検索キーワード:"ウエルシア アプリ クーポン Vポイント WAON POINT"},
+    {id:"W002",店舗名:"ウエルシア",店舗名かな:"うえるしあ",ブランド名:"ウエルシア",カテゴリ大:"ドラッグストア",カテゴリ小:"ドラッグストア",優待元:"Vポイント / Vカードクーポン",優待元種別:"決済・ポイント系",優待ステータス:"要手動確認",優先度:"3. 余裕があれば見る",信頼度:"中",確認方法:"Vポイント/Vカード系アプリでクーポン確認",確認URL:"未確認",アプリ名:"Vポイントアプリ",提示タイミング:"会計前",使う前の操作:"クーポンセット後に提示",支払いとの関係:"支払い前にポイント提示",併用注意:"併用条件要確認",会員条件:"V会員",対象範囲:"表示対象者に依存",店舗限定有無:"要確認",オンライン限定有無:"要確認",最終確認日:"2026-05-24",次回確認目安:"来店前",メモ:"個人別表示の可能性があるため手動確認。",検索キーワード:"ウエルシア Vポイント Vカード クーポン"},
+    {id:"M001",店舗名:"マクドナルド",店舗名かな:"まくどなるど",ブランド名:"マクドナルド",カテゴリ大:"ファストフード",カテゴリ小:"ハンバーガー",優待元:"マクドナルド公式アプリ",優待元種別:"店舗公式アプリ",優待ステータス:"あり",優先度:"1. まず見る",信頼度:"高",確認方法:"公式アプリで配信クーポンを確認",確認URL:"https://www.mcdonalds.co.jp/",アプリ名:"マクドナルド",提示タイミング:"注文前",使う前の操作:"クーポン番号/モバイルオーダー条件を確認",支払いとの関係:"注文時に適用後、支払い方法確認",併用注意:"クーポン同士の併用条件要確認",会員条件:"アプリ会員",対象範囲:"全国/一部除外あり",店舗限定有無:"要確認",オンライン限定有無:"要確認",最終確認日:"2026-05-24",次回確認目安:"来店前",メモ:"まず公式アプリ。",検索キーワード:"マクドナルド マック 公式アプリ クーポン"},
+    {id:"M002",店舗名:"マクドナルド",店舗名かな:"まくどなるど",ブランド名:"マクドナルド",カテゴリ大:"ファストフード",カテゴリ小:"ハンバーガー",優待元:"SmartNewsクーポン",優待元種別:"横断型",優待ステータス:"要手動確認",優先度:"2. 次に見る",信頼度:"中",確認方法:"SmartNewsアプリのクーポンタブで確認",確認URL:"未確認",アプリ名:"SmartNews",提示タイミング:"注文前",使う前の操作:"アプリ内クーポン表示",支払いとの関係:"注文前に適用",併用注意:"公式アプリとの併用条件要確認",会員条件:"SmartNewsアプリ",対象範囲:"配信状況に依存",店舗限定有無:"要確認",オンライン限定有無:"要確認",最終確認日:"2026-05-24",次回確認目安:"来店前",メモ:"日替わり/アプリ内のため要手動確認。",検索キーワード:"マクドナルド SmartNews クーポン"},
+    {id:"MR001",店舗名:"丸亀製麺",店舗名かな:"まるがめせいめん",ブランド名:"丸亀製麺",カテゴリ大:"牛丼・定食",カテゴリ小:"うどん",優待元:"丸亀製麺公式アプリ",優待元種別:"店舗公式アプリ",優待ステータス:"あり",優先度:"1. まず見る",信頼度:"高",確認方法:"公式アプリでクーポンを確認",確認URL:"https://jp.marugame.com/",アプリ名:"丸亀製麺",提示タイミング:"会計前",使う前の操作:"クーポン選択/提示",支払いとの関係:"支払い前に提示",併用注意:"併用条件要確認",会員条件:"アプリ会員",対象範囲:"全国/一部除外あり",店舗限定有無:"要確認",オンライン限定有無:"要確認",最終確認日:"2026-05-24",次回確認目安:"来店前",メモ:"レジ前で慌てないよう先に開く。",検索キーワード:"丸亀製麺 アプリ クーポン"},
+    {id:"C001",店舗名:"ローソン",店舗名かな:"ろーそん",ブランド名:"ローソン",カテゴリ大:"コンビニ",カテゴリ小:"コンビニ",優待元:"ローソンアプリ",優待元種別:"店舗公式アプリ",優待ステータス:"要手動確認",優先度:"1. まず見る",信頼度:"高",確認方法:"ローソンアプリでクーポン/お試し引換券を確認",確認URL:"https://www.lawson.co.jp/",アプリ名:"ローソン",提示タイミング:"会計前",使う前の操作:"クーポン取得、ポイントカード提示",支払いとの関係:"支払い前に提示",併用注意:"対象商品と併用条件要確認",会員条件:"アプリ/ポイント会員",対象範囲:"全国/一部除外あり",店舗限定有無:"要確認",オンライン限定有無:"要確認",最終確認日:"2026-05-24",次回確認目安:"来店前",メモ:"Ponta/dポイント連携も確認。",検索キーワード:"ローソン アプリ クーポン Ponta dポイント"},
+    {id:"F001",店舗名:"ガスト",店舗名かな:"がすと",ブランド名:"すかいらーく",カテゴリ大:"ファミレス",カテゴリ小:"ファミレス",優待元:"すかいらーくアプリ",優待元種別:"店舗公式アプリ",優待ステータス:"あり",優先度:"1. まず見る",信頼度:"高",確認方法:"すかいらーくアプリでガストのクーポンを確認",確認URL:"https://www.skylark.co.jp/",アプリ名:"すかいらーく",提示タイミング:"注文前/会計前",使う前の操作:"クーポン選択、番号提示",支払いとの関係:"クーポン適用後に支払い確認",併用注意:"クーポン併用条件要確認",会員条件:"アプリ会員",対象範囲:"全国/一部除外あり",店舗限定有無:"要確認",オンライン限定有無:"要確認",最終確認日:"2026-05-24",次回確認目安:"来店前",メモ:"注文前に開いておく。",検索キーワード:"ガスト すかいらーく アプリ クーポン"},
+    {id:"K001",店舗名:"ビッグエコー",店舗名かな:"びっぐえこー",ブランド名:"ビッグエコー",カテゴリ大:"カラオケ",カテゴリ小:"カラオケ",優待元:"JAF会員優待",優待元種別:"横断型",優待ステータス:"可能性あり",優先度:"1. まず見る",信頼度:"中",確認方法:"JAFナビで店名検索",確認URL:"https://yutai.jafnavi.jp/",アプリ名:"JAFアプリ",提示タイミング:"受付時/会計前",使う前の操作:"優待条件を確認して提示",支払いとの関係:"受付時条件が多いため先に確認",併用注意:"他割引との併用条件要確認",会員条件:"JAF会員",対象範囲:"店舗により変動",店舗限定有無:"要確認",オンライン限定有無:"要確認",最終確認日:"2026-05-24",次回確認目安:"来店前",メモ:"カラオケは受付前確認が重要。",検索キーワード:"ビッグエコー JAF 優待 カラオケ"},
+    {id:"K002",店舗名:"ビッグエコー",店舗名かな:"びっぐえこー",ブランド名:"ビッグエコー",カテゴリ大:"カラオケ",カテゴリ小:"カラオケ",優待元:"Club Off",優待元種別:"福利厚生・会員制",優待ステータス:"要手動確認",優先度:"2. 次に見る",信頼度:"中",確認方法:"Club Offログイン後に店名検索",確認URL:"未確認",アプリ名:"Club Off",提示タイミング:"予約時/受付時",使う前の操作:"事前購入/予約条件を確認",支払いとの関係:"受付前確認",併用注意:"併用条件要確認",会員条件:"Club Off利用権限",対象範囲:"会員サイト内表示に依存",店舗限定有無:"要確認",オンライン限定有無:"要確認",最終確認日:"2026-05-24",次回確認目安:"来店前",メモ:"ログイン後情報。",検索キーワード:"ビッグエコー Club Off カラオケ"},
+    {id:"E001",店舗名:"イオンシネマ",店舗名かな:"いおんしねま",ブランド名:"イオンシネマ",カテゴリ大:"映画館",カテゴリ小:"映画館",優待元:"イオンカード優待",優待元種別:"決済・ポイント系",優待ステータス:"可能性あり",優先度:"1. まず見る",信頼度:"中",確認方法:"イオンカード/暮らしのマネーサイト等で映画優待を確認",確認URL:"未確認",アプリ名:"イオンカード",提示タイミング:"チケット購入前",使う前の操作:"対象カード、購入経路、枚数制限を確認",支払いとの関係:"指定カード決済条件に注意",併用注意:"併用条件要確認",会員条件:"対象カード会員",対象範囲:"優待内容に依存",店舗限定有無:"要確認",オンライン限定有無:"要確認",最終確認日:"2026-05-24",次回確認目安:"鑑賞前",メモ:"映画館は購入前確認が重要。",検索キーワード:"イオンシネマ イオンカード 優待 映画"},
+    {id:"E002",店舗名:"映画館",店舗名かな:"えいがかん",ブランド名:"映画館全般",カテゴリ大:"映画館",カテゴリ小:"映画館",優待元:"Club Off",優待元種別:"福利厚生・会員制",優待ステータス:"要手動確認",優先度:"1. まず見る",信頼度:"中",確認方法:"Club Offログイン後に映画チケットカテゴリを確認",確認URL:"未確認",アプリ名:"Club Off",提示タイミング:"チケット購入前",使う前の操作:"事前購入/電子チケット/コード発行条件を確認",支払いとの関係:"購入経路指定あり",併用注意:"併用条件要確認",会員条件:"Club Off利用権限",対象範囲:"会員サイト内表示に依存",店舗限定有無:"要確認",オンライン限定有無:"要確認",最終確認日:"2026-05-24",次回確認目安:"鑑賞前",メモ:"映画館カテゴリで最優先確認。",検索キーワード:"映画館 Club Off 優待 チケット"},
+    {id:"O001",店舗名:"極楽湯",店舗名かな:"ごくらくゆ",ブランド名:"極楽湯",カテゴリ大:"温浴施設",カテゴリ小:"スーパー銭湯",優待元:"JAF会員優待",優待元種別:"横断型",優待ステータス:"可能性あり",優先度:"1. まず見る",信頼度:"中",確認方法:"JAFナビで施設名検索",確認URL:"https://yutai.jafnavi.jp/",アプリ名:"JAFアプリ",提示タイミング:"入館前/会計前",使う前の操作:"会員証提示条件を確認",支払いとの関係:"入館前提示が多い",併用注意:"併用条件要確認",会員条件:"JAF会員",対象範囲:"施設により変動",店舗限定有無:"要確認",オンライン限定有無:"要確認",最終確認日:"2026-05-24",次回確認目安:"来店前",メモ:"温浴はJAF/Club Offを最初に確認。",検索キーワード:"極楽湯 JAF 優待 温浴"},
+    {id:"O002",店舗名:"極楽湯",店舗名かな:"ごくらくゆ",ブランド名:"極楽湯",カテゴリ大:"温浴施設",カテゴリ小:"スーパー銭湯",優待元:"Club Off",優待元種別:"福利厚生・会員制",優待ステータス:"要手動確認",優先度:"2. 次に見る",信頼度:"中",確認方法:"Club Offログイン後に施設名検索",確認URL:"未確認",アプリ名:"Club Off",提示タイミング:"入館前/事前購入",使う前の操作:"電子チケット/印刷券の条件確認",支払いとの関係:"事前購入型に注意",併用注意:"併用条件要確認",会員条件:"Club Off利用権限",対象範囲:"会員サイト内表示に依存",店舗限定有無:"要確認",オンライン限定有無:"要確認",最終確認日:"2026-05-24",次回確認目安:"来店前",メモ:"施設ごとに条件が異なる。",検索キーワード:"極楽湯 Club Off 温浴"}
+  ]
+};
+let DB=EMBEDDED_DB;let favs=JSON.parse(localStorage.getItem('coupon_favs')||'[]');
+const $=id=>document.getElementById(id);const norm=v=>(v||'').toString().toLowerCase().trim();
+function parseDate(s){const d=new Date((s||'').replaceAll('/','-'));return isNaN(d)?null:d}
+function oldFlag(row){const d=parseDate(row.最終確認日);if(!d)return true;return (Date.now()-d.getTime())/86400000>180}
+function priorityNum(v){const m=(v||'').match(/^(\d+)/);return m?Number(m[1]):9}
+function statusRank(v){return {'あり':1,'可能性あり':2,'要手動確認':3,'なし':4}[v]||5}
+function initFilters(){const rows=DB.coupon_db||[];const cats=[...new Set(rows.map(r=>r.カテゴリ大).filter(Boolean))].sort();const srcs=[...new Set(rows.map(r=>r.優待元).filter(Boolean))].sort();$('cat').innerHTML='<option value="">すべて</option>'+cats.map(x=>`<option>${esc(x)}</option>`).join('');$('src').innerHTML='<option value="">すべて</option>'+srcs.map(x=>`<option>${esc(x)}</option>`).join('');$('quick').innerHTML=['サンドラッグ','ウエルシア','マクドナルド','丸亀製麺','映画館','カラオケ','温浴施設','JAF会員優待','Club Off'].map(x=>`<button class="chip" data-q="${esc(x)}">${esc(x)}</button>`).join('');document.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{$('q').value=b.dataset.q;render()})}
+function esc(s){return (s??'').toString().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function matchRow(r,q,cat,src){const text=norm(Object.values(r).join(' '));return (!q||text.includes(norm(q)))&&(!cat||r.カテゴリ大===cat)&&(!src||r.優待元===src)}
+function groupRows(rows){const map=new Map();for(const r of rows){const k=r.店舗名||r.ブランド名||'未分類';if(!map.has(k))map.set(k,[]);map.get(k).push(r)}return [...map.entries()].map(([name,items])=>({name,items:items.sort((a,b)=>priorityNum(a.優先度)-priorityNum(b.優先度)||statusRank(a.優待ステータス)-statusRank(b.優待ステータス))})).sort((a,b)=>a.name.localeCompare(b.name,'ja'))}
+function render(){const q=$('q').value,cat=$('cat').value,src=$('src').value;let rows=(DB.coupon_db||[]).filter(r=>matchRow(r,q,cat,src));if(window.onlyFav){rows=rows.filter(r=>favs.includes(r.店舗名))}$('count').textContent=rows.length;const groups=groupRows(rows);$('results').innerHTML=groups.length?groups.map(g=>storeHtml(g)).join(''):'<div class="card empty">該当なし。店名をひらがな・カタカナ・略称でも試してください。</div>'}
+function storeHtml(g){const first=g.items[0]||{};const isFav=favs.includes(g.name);return `<article class="store"><div class="storeHead"><div><div class="storeTitle">${esc(g.name)}</div><div class="storeSub">${esc(first.カテゴリ大||'')} / ${esc(first.カテゴリ小||'')} ・ ${g.items.length}件</div></div><button class="${isFav?'danger':'ghost'}" onclick="toggleFav('${esc(g.name)}')">${isFav?'よく使う店から外す':'よく使う店に追加'}</button></div><div class="items">${g.items.map(itemHtml).join('')}</div><div style="padding:0 14px 14px"><div class="notice"><b>支払い：</b>クーポン・会員証・ポイント提示を確認したあと、支払いチェッカーアプリで決済方法を確認。</div></div></article>`}
+function itemHtml(r){const re=oldFlag(r)?'<span class="badge recheck">要再確認</span>':'';const url=r.確認URL&&r.確認URL!=='未確認'?`<a class="link" href="${esc(r.確認URL)}" target="_blank" rel="noopener">確認URLを開く</a>`:'未確認';return `<div class="item"><div class="itemTop"><div class="source">${esc(r.優待元)}</div><div class="badges"><span class="badge priority">${esc(r.優先度)}</span><span class="badge status-${esc(r.優待ステータス)}">${esc(r.優待ステータス)}</span>${re}</div></div><div class="detail"><b>種別</b><span>${esc(r.優待元種別)}</span><b>確認方法</b><span>${esc(r.確認方法)}</span><b>提示タイミング</b><span>${esc(r.提示タイミング)}</span><b>使う前の操作</b><span>${esc(r.使う前の操作)}</span><b>注意</b><span>${esc(r.併用注意)} / ${esc(r.メモ)}</span><b>最終確認日</b><span>${esc(r.最終確認日)}</span><b>リンク</b><span>${url}</span></div></div>`}
+window.toggleFav=name=>{favs=favs.includes(name)?favs.filter(x=>x!==name):[...favs,name];localStorage.setItem('coupon_favs',JSON.stringify(favs));render()};
+['q','cat','src'].forEach(id=>$(id).addEventListener('input',()=>{window.onlyFav=false;render()}));$('clear').onclick=()=>{$('q').value='';$('cat').value='';$('src').value='';window.onlyFav=false;render()};$('showFav').onclick=()=>{window.onlyFav=!window.onlyFav;render()};$('file').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{DB=JSON.parse(rd.result);initFilters();render()}catch(err){alert('JSONを読み込めませんでした: '+err.message)}};rd.readAsText(f,'utf-8')});
+fetch('coupon_database.json',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(j=>{DB=j;initFilters();render()}).catch(()=>{initFilters();render()});
+</script>
+</body>
+</html>
